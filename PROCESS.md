@@ -36,23 +36,24 @@ I checked the implementation against:
 
 Latest run results in this workspace:
 
-- `php artisan test tests/Feature/StampDutyCalculatorPageTest.php tests/Unit/StampDutyCalculatorTest.php`
-- Outcome: **11 passed, 0 failed** (33 assertions)
-- Includes: calculator route/regression checks, submission validation checks, and SDLT calculation unit coverage.
+- `php artisan test`
+- `docker compose exec app php artisan test`
+- Outcome: **13 passed, 0 failed** (35 assertions) in both host and Docker runs.
+- Includes: full unit and feature suite, calculator route/regression checks, submission validation checks, and SDLT calculation coverage.
 
 
 
 How it works:
 
 The form submits with POST to the calculate route:
-calculator.blade.php:459
+resources/views/calculator.blade.php
 The POST endpoint is defined here:
-web.php:8
+routes/web.php
 The calculation runs in Laravel on the server and returns a rendered response (not client-side math, not AJAX).
-Extra hardening:
+Routing hardening:
 
 A GET request to /calculate is redirected back to / to avoid a 405 page:
-web.php:7
+routes/web.php
 So for that judgement-call line in the plan:
 
 Chosen approach: form POST (server-side)
@@ -66,3 +67,12 @@ What I'd do with another hour
 - Add a lightweight route/API response for calculator results so the same service can back an AJAX UI later.
 - Move inline CSS into compiled assets and split style tokens/components for maintainability.
 - Add visual regression snapshots for the branded layout across desktop and mobile breakpoints.
+
+
+Nice to have (beyond brief)
+
+- Add a small security-hardening middleware for production headers (CSP, nosniff, frame/permissions/referrer policies), while keeping local development flexible.
+- Add route-level rate limiting on the calculate endpoint to reduce abuse.
+- Move the inline JavaScript/CSS into versioned asset files so CSP can be tightened cleanly.
+- Add CI checks for `composer audit`, test runs, and basic static analysis before merge.
+- Add an optional purchase-date field with date-effective rate tables for parity with broader public calculators.
